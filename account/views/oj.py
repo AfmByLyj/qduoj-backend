@@ -1,16 +1,17 @@
+from collections import defaultdict
 import os
-from datetime import timedelta
+from datetime import timedelta, datetime
 from importlib import import_module
-
 import qrcode
 from django.conf import settings
 from django.contrib import auth
 from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
-from django.utils.timezone import now
+from django.utils.timezone import now, make_aware
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from otpauth import OtpAuth
 
+from submission.models import Submission
 from problem.models import Problem
 from utils.constants import ContestRuleType
 from options.options import SysOptions
@@ -385,6 +386,44 @@ class UserRankAPI(APIView):
         else:
             profiles = profiles.filter(total_score__gt=0).order_by("-total_score")
         return self.success(self.paginate_data(request, profiles, RankInfoSerializer))
+
+#
+class UserDayRankApi(APIView):
+    def get(self, request):
+        time_frame = request.GET.get("time_frame")
+        endTime = make_aware(datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=0))
+        submissions = Submission.objects.filter(create_time__gte=endTime, contest_id__isnull=True).select_related("problem__created_by")
+        username_result_count = defaultdict(int)
+        for submission in submissions:
+            if User.objects.get(username=submission.username, is_disabled=False).admin_type == AdminType.REGULAR_USER:
+                username_result_count[submission.username] += 1 if submission.result == 0 else 0
+        tmpRank = sorted(username_result_count.items(), key=lambda x: x[1], reverse=True)
+        rank = []
+        for _ in tmpRank:
+            userpro = UserProfile.objects.get(user__username=str(_[0]), user__is_disabled=False)
+            rank.append({
+                "avatar": userpro.avatar, 
+                "realName": userpro.real_name, 
+                "mood": userpro.mood, 
+                "userName": _[0], 
+                "acNum": _[1]
+            })
+        total = sum([_[1] for _ in tmpRank])
+        totalone = total
+        dailyAC = [{"Time": "{}-{}-{}".format(endTime.year, endTime.month, endTime.day), "total": total}]
+
+        for _ in range(1, int(time_frame) + 1):
+            endTime = make_aware(datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=_))
+            submissions = Submission.objects.filter(create_time__gte=endTime, contest_id__isnull=True).select_related("problem__created_by")
+            username_result_count = defaultdict(int)
+            for submission in submissions:
+                if User.objects.get(username=submission.username, is_disabled=False).admin_type == AdminType.REGULAR_USER:
+                    username_result_count[submission.username] += 1 if submission.result == 0 else 0
+            tmpRank = sorted(username_result_count.items(), key=lambda x: x[1], reverse=True)
+            total = sum([_[1] for _ in tmpRank])
+            dailyAC.append({"Time": "{}-{}-{}".format(endTime.year, endTime.month, endTime.day), "total": -dailyAC[-1]['total'] + total})
+
+        return self.success(data={"rank": rank, "data": dailyAC, "total": totalone})
 
 
 class ProfileProblemDisplayIDRefreshAPI(APIView):

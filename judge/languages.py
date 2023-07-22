@@ -164,10 +164,10 @@ _py3_lang_config = {
         "max_cpu_time": 3000,
         "max_real_time": 10000,
         "max_memory": 128 * 1024 * 1024,
-        "compile_command": "/usr/bin/python3 -m py_compile {src_path}",
+        "compile_command": "/usr/bin/python3.9 -m py_compile {src_path}",
     },
     "run": {
-        "command": "/usr/bin/python3 {exe_path}",
+        "command": "/usr/bin/python3.9 {exe_path}",
         "seccomp_rule": "general",
         "env": default_env + ["PYTHONIOENCODING=utf-8"]
     }
@@ -231,10 +231,10 @@ languages = [
     {"config": _c_lang_config, "spj": {"compile": _c_lang_spj_compile, "config": _c_lang_spj_config},
      "name": "C", "description": "GCC 9.4", "content_type": "text/x-csrc"},
     {"config": _cpp_lang_config, "spj": {"compile": _cpp_lang_spj_compile, "config": _cpp_lang_spj_config},
-     "name": "C++", "description": "G++ 9.4", "content_type": "text/x-c++src"},
+     "name": "C++", "description": "G++ 14", "content_type": "text/x-c++src"},
     {"config": _java_lang_config, "name": "Java", "description": "OpenJDK 11", "content_type": "text/x-java"},
     {"config": _py2_lang_config, "name": "Python2", "description": "Python 2.7", "content_type": "text/x-python"},
-    {"config": _py3_lang_config, "name": "Python3", "description": "Python 3.6", "content_type": "text/x-python"},
+    {"config": _py3_lang_config, "name": "Python3", "description": "Python 3.9", "content_type": "text/x-python"},
     {"config": _go_lang_config, "name": "Golang", "description": "Golang 1.17", "content_type": "text/x-go"},
     {"config": _node_lang_config, "name": "JavaScript", "description": "Node 14", "content_type": "text/javascript"},
 ]
