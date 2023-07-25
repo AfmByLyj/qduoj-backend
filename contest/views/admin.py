@@ -87,6 +87,15 @@ class ContestAPI(APIView):
             contests = contests.filter(title__contains=keyword)
         return self.success(self.paginate_data(request, contests, ContestAdminSerializer))
 
+    def delete(self, request):
+        contest_id = request.GET.get('id')
+        if contest_id:
+            if request.user.is_admin():
+                Contest.objects.filter(id=contest_id,
+                                                   contest__created_by=request.user).delete()
+            else:
+                Contest.objects.filter(id=contest_id).delete()
+        return self.success()
 
 class ContestAnnouncementAPI(APIView):
     @validate_serializer(CreateContestAnnouncementSerializer)

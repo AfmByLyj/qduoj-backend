@@ -391,28 +391,8 @@ class UserRankAPI(APIView):
 class UserDayRankApi(APIView):
     def get(self, request):
         time_frame = request.GET.get("time_frame")
-        endTime = make_aware(datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=0))
-        submissions = Submission.objects.filter(create_time__gte=endTime, contest_id__isnull=True).select_related("problem__created_by")
-        username_result_count = defaultdict(int)
-        for submission in submissions:
-            if User.objects.get(username=submission.username, is_disabled=False).admin_type == AdminType.REGULAR_USER:
-                username_result_count[submission.username] += 1 if submission.result == 0 else 0
-        tmpRank = sorted(username_result_count.items(), key=lambda x: x[1], reverse=True)
-        rank = []
-        for _ in tmpRank:
-            userpro = UserProfile.objects.get(user__username=str(_[0]), user__is_disabled=False)
-            rank.append({
-                "avatar": userpro.avatar, 
-                "realName": userpro.real_name, 
-                "mood": userpro.mood, 
-                "userName": _[0], 
-                "acNum": _[1]
-            })
-        total = sum([_[1] for _ in tmpRank])
-        totalone = total
-        dailyAC = [{"Time": "{}-{}-{}".format(endTime.year, endTime.month, endTime.day), "total": total}]
-
-        for _ in range(1, int(time_frame) + 1):
+        dailyAC = []
+        for _ in range(0, int(time_frame) + 1):
             endTime = make_aware(datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=_))
             submissions = Submission.objects.filter(create_time__gte=endTime, contest_id__isnull=True).select_related("problem__created_by")
             username_result_count = defaultdict(int)
@@ -420,10 +400,23 @@ class UserDayRankApi(APIView):
                 if User.objects.get(username=submission.username, is_disabled=False).admin_type == AdminType.REGULAR_USER:
                     username_result_count[submission.username] += 1 if submission.result == 0 else 0
             tmpRank = sorted(username_result_count.items(), key=lambda x: x[1], reverse=True)
+            if _ == int(time_frame):
+                rank = []
+                for tr in tmpRank:
+                    userpro = UserProfile.objects.get(user__username=str(tr[0]), user__is_disabled=False)
+                    rank.append({
+                        "avatar": userpro.avatar, 
+                        "realName": userpro.real_name, 
+                        "mood": userpro.mood, 
+                        "userName": tr[0], 
+                        "acNum": tr[1]
+                    })
             total = sum([_[1] for _ in tmpRank])
-            dailyAC.append({"Time": "{}-{}-{}".format(endTime.year, endTime.month, endTime.day), "total": -dailyAC[-1]['total'] + total})
-
-        return self.success(data={"rank": rank, "data": dailyAC, "total": totalone})
+            if _ != 0:
+                dailyAC.append({"Time": "{}-{}-{}".format(endTime.year, endTime.month, endTime.day), "total": -dailyAC[-1]['total'] + total})
+            else:
+                dailyAC.append({"Time": "{}-{}-{}".format(endTime.year, endTime.month, endTime.day), "total": total})
+        return self.success(data={"rank": rank, "data": dailyAC, "total": total})
 
 
 class ProfileProblemDisplayIDRefreshAPI(APIView):
