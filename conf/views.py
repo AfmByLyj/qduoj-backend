@@ -164,8 +164,331 @@ class JudgeServerHeartbeatAPI(CSRFExemptAPIView):
 
 
 class LanguagesAPI(APIView):
+    data = {
+        "languages": [
+            {
+                "spj": {
+                    "config": {
+                        "command": "{exe_path} {in_file_path} {user_out_file_path}",
+                        "exe_name": "spj-{spj_version}",
+                        "seccomp_rule": "c_cpp"
+                    },
+                    "compile": {
+                        "exe_name": "spj-{spj_version}",
+                        "src_name": "spj-{spj_version}.c",
+                        "max_memory": 1073741824,
+                        "max_cpu_time": 3000,
+                        "max_real_time": 10000,
+                        "compile_command": "/usr/bin/gcc -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c11 {src_path} -lm -o {exe_path}"
+                    }
+                },
+                "name": "C",
+                "config": {
+                    "run": {
+                        "env": [
+                            "LANG=en_US.UTF-8",
+                            "LANGUAGE=en_US:en",
+                            "LC_ALL=en_US.UTF-8"
+                        ],
+                        "command": "{exe_path}",
+                        "seccomp_rule": {
+                            "File IO": "c_cpp_file_io",
+                            "Standard IO": "c_cpp"
+                        }
+                    },
+                    "compile": {
+                        "exe_name": "main",
+                        "src_name": "main.c",
+                        "max_memory": 268435456,
+                        "max_cpu_time": 3000,
+                        "max_real_time": 10000,
+                        "compile_command": "/usr/bin/gcc -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c11 {src_path} -lm -o {exe_path}"
+                    },
+                    "template": "//PREPEND BEGIN\n#include <stdio.h>\n//PREPEND END\n\n//TEMPLATE BEGIN\nint add(int a, int b) {\n  // Please fill this blank\n  return ___________;\n}\n//TEMPLATE END\n\n//APPEND BEGIN\nint main() {\n  printf(\"%d\", add(1, 2));\n  return 0;\n}\n//APPEND END"
+                },
+                "description": "GCC 9.4",
+                "content_type": "text/x-csrc"
+            },
+            {
+                "spj": {
+                    "config": {
+                        "command": "{exe_path} {in_file_path} {user_out_file_path}",
+                        "exe_name": "spj-{spj_version}",
+                        "seccomp_rule": "c_cpp"
+                    },
+                    "compile": {
+                        "exe_name": "spj-{spj_version}",
+                        "src_name": "spj-{spj_version}.cpp",
+                        "max_memory": 1073741824,
+                        "max_cpu_time": 10000,
+                        "max_real_time": 20000,
+                        "compile_command": "/usr/bin/g++ -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c++14 {src_path} -lm -o {exe_path}"
+                    }
+                },
+                "name": "C++",
+                "config": {
+                    "run": {
+                        "env": [
+                            "LANG=en_US.UTF-8",
+                            "LANGUAGE=en_US:en",
+                            "LC_ALL=en_US.UTF-8"
+                        ],
+                        "command": "{exe_path}",
+                        "seccomp_rule": {
+                            "File IO": "c_cpp_file_io",
+                            "Standard IO": "c_cpp"
+                        }
+                    },
+                    "compile": {
+                        "exe_name": "main",
+                        "src_name": "main.cpp",
+                        "max_memory": 1073741824,
+                        "max_cpu_time": 10000,
+                        "max_real_time": 20000,
+                        "compile_command": "/usr/bin/g++ -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c++14 {src_path} -lm -o {exe_path}"
+                    },
+                    "template": "//PREPEND BEGIN\n#include <iostream>\n//PREPEND END\n\n//TEMPLATE BEGIN\nint add(int a, int b) {\n  // Please fill this blank\n  return ___________;\n}\n//TEMPLATE END\n\n//APPEND BEGIN\nint main() {\n  std::cout << add(1, 2);\n  return 0;\n}\n//APPEND END"
+                },
+                "description": "G++ 14",
+                "content_type": "text/x-c++src"
+            },
+            {
+                "name": "Java",
+                "config": {
+                    "run": {
+                        "env": [
+                            "LANG=en_US.UTF-8",
+                            "LANGUAGE=en_US:en",
+                            "LC_ALL=en_US.UTF-8"
+                        ],
+                        "command": "/usr/bin/java -cp {exe_dir} -XX:MaxRAM={max_memory}k -Djava.security.manager -Dfile.encoding=UTF-8 -Djava.security.policy==/etc/java_policy -Djava.awt.headless=true Main",
+                        "seccomp_rule": None,
+                        "memory_limit_check_only": 1
+                    },
+                    "compile": {
+                        "exe_name": "Main",
+                        "src_name": "Main.java",
+                        "max_memory": -1,
+                        "max_cpu_time": 5000,
+                        "max_real_time": 10000,
+                        "compile_command": "/usr/bin/javac {src_path} -d {exe_dir} -encoding UTF8"
+                    },
+                    "template": "//PREPEND BEGIN\n//PREPEND END\n\n//TEMPLATE BEGIN\n//TEMPLATE END\n\n//APPEND BEGIN\n//APPEND END"
+                },
+                "description": "OpenJDK 11",
+                "content_type": "text/x-java"
+            },
+            {
+                "name": "Python2",
+                "config": {
+                    "run": {
+                        "env": [
+                            "LANG=en_US.UTF-8",
+                            "LANGUAGE=en_US:en",
+                            "LC_ALL=en_US.UTF-8"
+                        ],
+                        "command": "/usr/bin/python {exe_path}",
+                        "seccomp_rule": "general"
+                    },
+                    "compile": {
+                        "exe_name": "solution.pyc",
+                        "src_name": "solution.py",
+                        "max_memory": 134217728,
+                        "max_cpu_time": 3000,
+                        "max_real_time": 10000,
+                        "compile_command": "/usr/bin/python -m py_compile {src_path}"
+                    },
+                    "template": "//PREPEND BEGIN\n//PREPEND END\n\n//TEMPLATE BEGIN\n//TEMPLATE END\n\n//APPEND BEGIN\n//APPEND END"
+                },
+                "description": "Python 2.7",
+                "content_type": "text/x-python"
+            },
+            {
+                "name": "Python3",
+                "config": {
+                    "run": {
+                        "env": [
+                            "LANG=en_US.UTF-8",
+                            "LANGUAGE=en_US:en",
+                            "LC_ALL=en_US.UTF-8",
+                            "PYTHONIOENCODING=utf-8"
+                        ],
+                        "command": "/usr/bin/python3 {exe_path}",
+                        "seccomp_rule": "general"
+                    },
+                    "compile": {
+                        "exe_name": "__pycache__/solution.cpython-36.pyc",
+                        "src_name": "solution.py",
+                        "max_memory": 134217728,
+                        "max_cpu_time": 3000,
+                        "max_real_time": 10000,
+                        "compile_command": "/usr/bin/python3.9 -m py_compile {src_path}"
+                    },
+                    "template": "//PREPEND BEGIN\n//PREPEND END\n\n//TEMPLATE BEGIN\n//TEMPLATE END\n\n//APPEND BEGIN\n//APPEND END"
+                },
+                "description": "Python 3.9",
+                "content_type": "text/x-python"
+            },
+            {
+                "name": "Golang",
+                "config": {
+                    "run": {
+                        "env": [
+                            "GODEBUG=madvdontneed=1",
+                            "GOMAXPROCS=1",
+                            "LANG=en_US.UTF-8",
+                            "LANGUAGE=en_US:en",
+                            "LC_ALL=en_US.UTF-8"
+                        ],
+                        "command": "{exe_path}",
+                        "seccomp_rule": "golang",
+                        "memory_limit_check_only": 1
+                    },
+                    "compile": {
+                        "env": [
+                            "GOCACHE=/tmp",
+                            "GOPATH=/tmp",
+                            "GOMAXPROCS=1",
+                            "LANG=en_US.UTF-8",
+                            "LANGUAGE=en_US:en",
+                            "LC_ALL=en_US.UTF-8"
+                        ],
+                        "exe_name": "main",
+                        "src_name": "main.go",
+                        "max_memory": 1073741824,
+                        "max_cpu_time": 3000,
+                        "max_real_time": 5000,
+                        "compile_command": "/usr/bin/go build -o {exe_path} {src_path}"
+                    },
+                    "template": "//PREPEND BEGIN\n//PREPEND END\n\n//TEMPLATE BEGIN\n//TEMPLATE END\n\n//APPEND BEGIN\n//APPEND END"
+                },
+                "description": "Golang 1.17",
+                "content_type": "text/x-go"
+            },
+            {
+                "name": "JavaScript",
+                "config": {
+                    "run": {
+                        "env": [
+                            "LANG=en_US.UTF-8",
+                            "LANGUAGE=en_US:en",
+                            "LC_ALL=en_US.UTF-8"
+                        ],
+                        "command": "/usr/bin/node {exe_path}",
+                        "seccomp_rule": "node",
+                        "memory_limit_check_only": 1
+                    },
+                    "compile": {
+                        "env": [
+                            "LANG=en_US.UTF-8",
+                            "LANGUAGE=en_US:en",
+                            "LC_ALL=en_US.UTF-8"
+                        ],
+                        "exe_name": "main.js",
+                        "src_name": "main.js",
+                        "max_memory": 1073741824,
+                        "max_cpu_time": 3000,
+                        "max_real_time": 5000,
+                        "compile_command": "/usr/bin/node --check {src_path}"
+                    },
+                    "template": "//PREPEND BEGIN\n//PREPEND END\n\n//TEMPLATE BEGIN\n//TEMPLATE END\n\n//APPEND BEGIN\n//APPEND END"
+                },
+                "description": "Node 14",
+                "content_type": "text/javascript"
+            }
+        ],
+        "spj_languages": [
+            {
+                "spj": {
+                    "config": {
+                        "command": "{exe_path} {in_file_path} {user_out_file_path}",
+                        "exe_name": "spj-{spj_version}",
+                        "seccomp_rule": "c_cpp"
+                    },
+                    "compile": {
+                        "exe_name": "spj-{spj_version}",
+                        "src_name": "spj-{spj_version}.c",
+                        "max_memory": 1073741824,
+                        "max_cpu_time": 3000,
+                        "max_real_time": 10000,
+                        "compile_command": "/usr/bin/gcc -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c11 {src_path} -lm -o {exe_path}"
+                    }
+                },
+                "name": "C",
+                "config": {
+                    "run": {
+                        "env": [
+                            "LANG=en_US.UTF-8",
+                            "LANGUAGE=en_US:en",
+                            "LC_ALL=en_US.UTF-8"
+                        ],
+                        "command": "{exe_path}",
+                        "seccomp_rule": {
+                            "File IO": "c_cpp_file_io",
+                            "Standard IO": "c_cpp"
+                        }
+                    },
+                    "compile": {
+                        "exe_name": "main",
+                        "src_name": "main.c",
+                        "max_memory": 268435456,
+                        "max_cpu_time": 3000,
+                        "max_real_time": 10000,
+                        "compile_command": "/usr/bin/gcc -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c11 {src_path} -lm -o {exe_path}"
+                    },
+                    "template": "//PREPEND BEGIN\n#include <stdio.h>\n//PREPEND END\n\n//TEMPLATE BEGIN\nint add(int a, int b) {\n  // Please fill this blank\n  return ___________;\n}\n//TEMPLATE END\n\n//APPEND BEGIN\nint main() {\n  printf(\"%d\", add(1, 2));\n  return 0;\n}\n//APPEND END"
+                },
+                "description": "GCC 9.4",
+                "content_type": "text/x-csrc"
+            },
+            {
+                "spj": {
+                    "config": {
+                        "command": "{exe_path} {in_file_path} {user_out_file_path}",
+                        "exe_name": "spj-{spj_version}",
+                        "seccomp_rule": "c_cpp"
+                    },
+                    "compile": {
+                        "exe_name": "spj-{spj_version}",
+                        "src_name": "spj-{spj_version}.cpp",
+                        "max_memory": 1073741824,
+                        "max_cpu_time": 10000,
+                        "max_real_time": 20000,
+                        "compile_command": "/usr/bin/g++ -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c++14 {src_path} -lm -o {exe_path}"
+                    }
+                },
+                "name": "C++",
+                "config": {
+                    "run": {
+                        "env": [
+                            "LANG=en_US.UTF-8",
+                            "LANGUAGE=en_US:en",
+                            "LC_ALL=en_US.UTF-8"
+                        ],
+                        "command": "{exe_path}",
+                        "seccomp_rule": {
+                            "File IO": "c_cpp_file_io",
+                            "Standard IO": "c_cpp"
+                        }
+                    },
+                    "compile": {
+                        "exe_name": "main",
+                        "src_name": "main.cpp",
+                        "max_memory": 1073741824,
+                        "max_cpu_time": 10000,
+                        "max_real_time": 20000,
+                        "compile_command": "/usr/bin/g++ -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c++14 {src_path} -lm -o {exe_path}"
+                    },
+                    "template": "//PREPEND BEGIN\n#include <iostream>\n//PREPEND END\n\n//TEMPLATE BEGIN\nint add(int a, int b) {\n  // Please fill this blank\n  return ___________;\n}\n//TEMPLATE END\n\n//APPEND BEGIN\nint main() {\n  std::cout << add(1, 2);\n  return 0;\n}\n//APPEND END"
+                },
+                "description": "G++ 14",
+                "content_type": "text/x-c++src"
+            }
+        ]
+    }
     def get(self, request):
-        return self.success({"languages": SysOptions.languages, "spj_languages": SysOptions.spj_languages})
+        # return self.success({"languages": SysOptions.languages, "spj_languages": SysOptions.spj_languages})
+        return self.success(self.data)
 
 
 class TestCasePruneAPI(APIView):
