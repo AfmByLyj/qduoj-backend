@@ -9,7 +9,7 @@ from problem.models import Problem
 from utils.api import APIView, validate_serializer
 from utils.constants import CacheKey, CONTEST_PASSWORD_SESSION_KEY
 from utils.shortcuts import datetime2str, check_is_id
-from account.models import AdminType
+from account.models import AdminType, User, UserProfile
 from account.decorators import login_required, check_contest_permission, check_contest_password
 
 from utils.constants import ContestRuleType, ContestStatus
@@ -64,7 +64,21 @@ class ContestListAPI(APIView):
                 contests = contests.filter(end_time__lt=cur)
             else:
                 contests = contests.filter(start_time__lte=cur, end_time__gte=cur)
-        return self.success(self.paginate_data(request, contests, ContestSerializer))
+        res = self.paginate_data(request, contests, ContestSerializer)
+        
+        if request.user.is_authenticated:
+            RL_get = UserProfile.objects.get(user=request.user).RL_get
+            if not "get_by_contest" in RL_get:
+                return self.success(res)
+            
+            contestRL = RL_get["get_by_contest"]
+
+            for _ in res["results"]:
+                _['RL_score_get'] = None
+                if str(_["id"]) in contestRL:
+                    _['RL_score_get'] = contestRL[str(_["id"])]["score"]
+
+        return self.success(res)
 
 
 class ContestPasswordVerifyAPI(APIView):

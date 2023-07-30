@@ -7,18 +7,53 @@ import dateutil.parser
 from django.http import FileResponse
 
 from account.decorators import check_contest_permission, ensure_created_by
-from account.models import User
+from account.models import User, AdminType, UserProfile
 from submission.models import Submission, JudgeStatus
 from utils.api import APIView, validate_serializer
 from utils.cache import cache
-from utils.constants import CacheKey
+from utils.constants import CacheKey, ContestRuleType
 from utils.shortcuts import rand_str
 from utils.tasks import delete_files
-from ..models import Contest, ContestAnnouncement, ACMContestRank
+from ..models import Contest, ContestAnnouncement, ACMContestRank, OIContestRank
 from ..serializers import (ContestAnnouncementSerializer, ContestAdminSerializer,
                            CreateConetestSeriaizer, CreateContestAnnouncementSerializer,
                            EditConetestSeriaizer, EditContestAnnouncementSerializer,
                            ACMContesHelperSerializer, )
+
+
+class AddRLScore(APIView):
+    def get(self, request):
+        contest_id = request.GET.get('id')
+        contest = Contest.objects.get(id=contest_id, visible=True)
+        if contest_id:
+            if contest.status != "-1":
+                return self.error("The contest is not over yet!")
+            if contest.RL_add:
+                return self.error("Not supported or settled!")
+            if request.user.is_admin():
+                if contest.rule_type == ContestRuleType.ACM:
+                    peo = ACMContestRank.objects.filter(contest=contest,
+                                                        user__admin_type=AdminType.REGULAR_USER,
+                                                        user__is_disabled=False).\
+                        select_related("user").order_by("-accepted_number", "total_time")
+                else:
+                    peo = OIContestRank.objects.filter(contest=contest,
+                                                        user__admin_type=AdminType.REGULAR_USER,
+                                                        user__is_disabled=False). \
+                        select_related("user").order_by("-total_score")
+                for ids, _ in enumerate(peo):
+                    usert = UserProfile.objects.get(id=_.user.id)
+                    if ids + 1 <= 10:
+                        usert.add_RL_score(ranks=[0, ids + 1, contest_id])
+                    elif 10 < ids + 1 < len(peo) - 10:
+                        usert.add_RL_score(ranks=[1, ids + 1, contest_id])
+                    else:
+                        usert.add_RL_score(ranks=[2, len(peo) - ids, contest_id])
+                contest.RL_add = True
+                contest.save(update_fields=["RL_add"])
+        else:
+            return self.error("Need contest id!")
+        return self.success()
 
 
 class ContestAPI(APIView):

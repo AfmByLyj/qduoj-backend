@@ -16,7 +16,7 @@ REDIS_CONF = {
     "port": get_env("REDIS_PORT", "6379")
 }
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 

@@ -229,7 +229,7 @@ class UserRegisterAPI(APIView):
         user = User.objects.create(username=data["username"], email=data["email"])
         user.set_password(data["password"])
         user.save()
-        UserProfile.objects.create(user=user)
+        userT = UserProfile.objects.create(user=user)
         return self.success("Succeeded")
 
 
@@ -392,6 +392,7 @@ class UserDayRankApi(APIView):
     def get(self, request):
         time_frame = request.GET.get("time_frame")
         dailyAC = []
+        sumT = 0
         for _ in range(0, int(time_frame) + 1):
             endTime = make_aware(datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=_))
             submissions = Submission.objects.filter(create_time__gte=endTime, contest_id__isnull=True).select_related("problem__created_by")
@@ -409,13 +410,12 @@ class UserDayRankApi(APIView):
                         "realName": userpro.real_name, 
                         "mood": userpro.mood, 
                         "userName": tr[0], 
-                        "acNum": tr[1]
+                        "acNum": tr[1],
+                        "userSpan": userpro.userSpan
                     })
             total = sum([_[1] for _ in tmpRank])
-            if _ != 0:
-                dailyAC.append({"Time": "{}-{}-{}".format(endTime.year, endTime.month, endTime.day), "total": -dailyAC[-1]['total'] + total})
-            else:
-                dailyAC.append({"Time": "{}-{}-{}".format(endTime.year, endTime.month, endTime.day), "total": total})
+            dailyAC.append({"Time": "{}-{}-{}".format(endTime.year, endTime.month, endTime.day), "total": total - sumT})
+            sumT = total
         return self.success(data={"rank": rank, "data": dailyAC, "total": total})
 
 

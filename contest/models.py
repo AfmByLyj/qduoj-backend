@@ -25,6 +25,8 @@ class Contest(models.Model):
     visible = models.BooleanField(default=True)
     allowed_ip_ranges = JSONField(default=list)
 
+    RL_add = models.BooleanField(default=False)
+
     @property
     def status(self):
         if self.start_time > now():

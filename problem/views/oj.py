@@ -33,6 +33,7 @@ class ProblemAPI(APIView):
             profile = request.user.userprofile
             acm_problems_status = profile.acm_problems_status.get("problems", {})
             oi_problems_status = profile.oi_problems_status.get("problems", {})
+            RL_get = profile.RL_get.get("get_by_problem", {})
             # paginate data
             results = queryset_values.get("results")
             if results is not None:
@@ -40,6 +41,11 @@ class ProblemAPI(APIView):
             else:
                 problems = [queryset_values, ]
             for problem in problems:
+                if str(problem["id"]) in RL_get:
+                    problem["get_score"] = RL_get[str(problem["id"])]["score"]
+                else:
+                    problem["get_score"] = None
+                    
                 if problem["rule_type"] == ProblemRuleType.ACM:
                     problem["my_status"] = acm_problems_status.get(str(problem["id"]), {}).get("status")
                 else:

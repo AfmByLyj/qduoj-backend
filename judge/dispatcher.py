@@ -184,6 +184,7 @@ class JudgeDispatcher(DispatcherBase):
             # OI模式下, 若多个测试点全部正确则AC， 若全部错误则取第一个错误测试点状态，否则为部分正确
             if not error_test_case:
                 self.submission.result = JudgeStatus.ACCEPTED
+
             elif self.problem.rule_type == ProblemRuleType.ACM or len(error_test_case) == len(resp["data"]):
                 self.submission.result = error_test_case[0]["result"]
             else:
@@ -222,6 +223,10 @@ class JudgeDispatcher(DispatcherBase):
             problem.save(update_fields=["accepted_number", "statistic_info"])
 
             profile = User.objects.select_for_update().get(id=self.submission.user_id).userprofile
+            RL_get = profile.RL_get.get("get_by_problem", {})
+            if not problem_id in RL_get:
+                if self.submission.result == JudgeStatus.ACCEPTED:
+                    profile.add_RL_score(pdiff=[problem.difficulty, problem_id])
             if problem.rule_type == ProblemRuleType.ACM:
                 acm_problems_status = profile.acm_problems_status.get("problems", {})
                 if acm_problems_status[problem_id]["status"] != JudgeStatus.ACCEPTED:
@@ -262,6 +267,11 @@ class JudgeDispatcher(DispatcherBase):
             user = User.objects.select_for_update().get(id=self.submission.user_id)
             user_profile = user.userprofile
             user_profile.submission_number += 1
+            RL_get = user_profile.RL_get.get("get_by_problem", {})
+            if not problem_id in RL_get:
+                if self.submission.result == JudgeStatus.ACCEPTED:
+                    user_profile.add_RL_score(pdiff=[problem.difficulty, problem_id])
+
             if problem.rule_type == ProblemRuleType.ACM:
                 acm_problems_status = user_profile.acm_problems_status.get("problems", {})
                 if problem_id not in acm_problems_status:

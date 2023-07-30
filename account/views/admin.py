@@ -15,6 +15,7 @@ from ..decorators import super_admin_required
 from ..models import AdminType, ProblemPermission, User, UserProfile
 from ..serializers import EditUserSerializer, UserAdminSerializer, GenerateUserSerializer
 from ..serializers import ImportUserSeralizer
+import logging
 
 
 class UserAdminAPI(APIView):
@@ -59,6 +60,7 @@ class UserAdminAPI(APIView):
         if User.objects.filter(email=data["email"].lower()).exclude(id=user.id).exists():
             return self.error("Email already exists")
 
+        lastType = user.admin_type
         pre_username = user.username
         user.username = data["username"].lower()
         user.email = data["email"].lower()
