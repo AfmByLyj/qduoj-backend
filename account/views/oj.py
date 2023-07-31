@@ -72,7 +72,7 @@ class AvatarUploadAPI(APIView):
             avatar = form.cleaned_data["image"]
         else:
             return self.error("Invalid file content")
-        if avatar.size > 2 * 1024 * 1024:
+        if avatar.size > 5 * 1024 * 1024:
             return self.error("Picture is too large")
         suffix = os.path.splitext(avatar.name)[-1].lower()
         if suffix not in [".gif", ".jpg", ".jpeg", ".bmp", ".png"]:
@@ -86,7 +86,7 @@ class AvatarUploadAPI(APIView):
 
         user_profile.avatar = f"{settings.AVATAR_URI_PREFIX}/{name}"
         user_profile.save()
-        return self.success("Succeeded")
+        return self.success(f"{settings.AVATAR_URI_PREFIX}/{name}")
 
 
 class TwoFactorAuthAPI(APIView):
