@@ -322,11 +322,11 @@ class LanguagesAPI(APIView):
                         "max_memory": 134217728,
                         "max_cpu_time": 3000,
                         "max_real_time": 10000,
-                        "compile_command": "/usr/bin/python3.9 -m py_compile {src_path}"
+                        "compile_command": "/usr/bin/python3 -m py_compile {src_path}"
                     },
                     "template": "//PREPEND BEGIN\n//PREPEND END\n\n//TEMPLATE BEGIN\n//TEMPLATE END\n\n//APPEND BEGIN\n//APPEND END"
                 },
-                "description": "Python 3.9",
+                "description": "Python 3",
                 "content_type": "text/x-python"
             },
             {
