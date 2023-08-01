@@ -1,3 +1,4 @@
+import datetime
 from django.contrib.auth.models import AbstractBaseUser
 from django.conf import settings
 from django.db import models
@@ -5,6 +6,7 @@ from utils.models import JSONField
 from django.db.models import IntegerField
 from django.db.models.functions import Cast
 import logging
+from django.utils.timezone import now, make_aware
 
 
 class AdminType(object):
@@ -145,6 +147,9 @@ class UserProfile(models.Model):
     #       "1": {
     #           "score": 10
     #       }
+    #   },
+    #   date: {
+    #       "2023-1-1": 10
     #   }
     # }
     RL_get = JSONField(default=dict)
@@ -209,19 +214,27 @@ class UserProfile(models.Model):
     def add_RL_score(self, pdiff=None, ranks=None):
         if self.user.admin_type != AdminType.REGULAR_USER: return
         score = self.RL_score
+        tmp_s = score
         fid = max(min((score + 1000) // 1000, 7), 0)
         if not pdiff is None:
             sid, problem_id = self.pdf2id[pdiff[0]], pdiff[1]
             score += self.padds[fid][sid]
+            score = max(-10000, min(score, 10000))
             self.RL_get.setdefault("get_by_problem", {}).setdefault(problem_id, {})
-            self.RL_get["get_by_problem"][problem_id]["score"] = self.padds[fid][sid]
+            self.RL_get["get_by_problem"][problem_id]["score"] = score - tmp_s
         elif not ranks is None:
             sid, psr, contest_id = ranks
             x1, x2, x3, f1 = self.radds[fid][sid]
             score += (x1 - psr * x3) * (x2 - psr * x3) * f1
+            score = max(-10000, min(score, 10000))
             self.RL_get.setdefault("get_by_contest", {}).setdefault(contest_id, {})
-            self.RL_get["get_by_contest"][contest_id]["score"] = (x1 - psr * x3) * (x2 - psr * x3) * f1
-        score = max(-10000, min(score, 10000))
+            self.RL_get["get_by_contest"][contest_id]["score"] = score - tmp_s
+
+        date = make_aware(datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=0))
+        add_date = "{}-{}-{}".format(date.year, date.month, date.day)
+        self.RL_get.setdefault("date", {}).setdefault(add_date, 0)
+        self.RL_get["date"][add_date] += score - tmp_s
+        
         self.ls_sc = score
         self.RL_score = score
         idx = 0

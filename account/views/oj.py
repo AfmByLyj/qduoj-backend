@@ -387,7 +387,13 @@ class UserRankAPI(APIView):
             profiles = profiles.filter(total_score__gt=0).order_by("-total_score")
         return self.success(self.paginate_data(request, profiles, RankInfoSerializer))
 
-#
+class RLscoreRankApi(APIView):
+    def get(self, request):
+        profiles = UserProfile.objects.filter(user__admin_type=AdminType.REGULAR_USER, user__is_disabled=False) \
+            .select_related("user")
+        profiles = profiles.order_by('-RL_score')
+        return self.success(self.paginate_data(request, profiles, RankInfoSerializer))
+#   
 class UserDayRankApi(APIView):
     def get(self, request):
         time_frame = request.GET.get("time_frame")
