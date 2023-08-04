@@ -229,7 +229,8 @@ class UserRegisterAPI(APIView):
         user = User.objects.create(username=data["username"], email=data["email"])
         user.set_password(data["password"])
         user.save()
-        userT = UserProfile.objects.create(user=user)
+        up = UserProfile.objects.create(user=user)
+        up.initModels()
         return self.success("Succeeded")
 
 
@@ -391,7 +392,7 @@ class RLscoreRankApi(APIView):
     def get(self, request):
         profiles = UserProfile.objects.filter(user__admin_type=AdminType.REGULAR_USER, user__is_disabled=False) \
             .select_related("user")
-        profiles = profiles.order_by('-RL_score')
+        profiles = profiles.filter(submission_number__gt=0).order_by('-RL_score')
         return self.success(self.paginate_data(request, profiles, RankInfoSerializer))
 #   
 class UserDayRankApi(APIView):

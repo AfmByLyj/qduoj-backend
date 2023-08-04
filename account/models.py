@@ -7,6 +7,7 @@ from django.db.models import IntegerField
 from django.db.models.functions import Cast
 import logging
 from django.utils.timezone import now, make_aware
+from math import inf
 
 
 class AdminType(object):
@@ -114,15 +115,15 @@ class UserProfile(models.Model):
 
     colorSpan = [
         [
-            [0, '<span style="color:pink;">{}</span>'],
-            [1000, '<span style="color:green;">{}</span>'],
-            [2000, '<span style="color:brown;">{}</span>'],
-            [3000, '<span style="color:cyan;">{}</span>'],
-            [4000, '<span style="color:bule;">{}</span>'],
-            [5000, '<span style="color:purple;">{}</span>'],
-            [8000, '<span style="color:red;">{}</span>'],
-            [9999, '<span style="color:black;">{}<span style="color:red;">{}</span></span>'],
-            [10001, '<span style="background-image: -webkit-linear-gradient(45deg, black, red);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">{}</span>'],
+            [-inf, 999, '<span style="color:pink;">{}</span>'],
+            [1000, 1999, '<span style="color:green;">{}</span>'],
+            [2000, 2999, '<span style="color:brown;">{}</span>'],
+            [3000, 3999, '<span style="color:cyan;">{}</span>'],
+            [4000, 4999, '<span style="color:bule;">{}</span>'],
+            [5000, 7999, '<span style="color:purple;">{}</span>'],
+            [8000, 9999, '<span style="color:red;">{}</span>'],
+            [10000, 10000, '<span style="color:black;">{}<span style="color:red;">{}</span></span>'],
+            [10001, inf, '<span style="background-image: -webkit-linear-gradient(45deg, black, red);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">{}</span>'],
         ],
         [
             [15001, '<span style="background-image: -webkit-linear-gradient(45deg, black, #FFDF00);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">{}</span>'],
@@ -182,28 +183,38 @@ class UserProfile(models.Model):
         "High": 2
     } 
 
-    def __init__(self, *args, **kwargs):
-        super(UserProfile, self).__init__(*args, **kwargs)
+    def initModels(self):
         if self.user: 
             if self.user.admin_type == AdminType.REGULAR_USER:
                 self.initMeta()
-                idx = 0
-                while self.RL_score >= self.colorSpan[0][idx][0]:
-                    idx += 1
-                if idx != 0: idx -= 1
-                if idx == 7:
-                    if len(self.user.username) > 1:
-                        self.userSpan = self.colorSpan[0][idx][1].format(self.user.username[0], self.user.username[1:])
-                    else:
-                        self.userSpan = self.colorSpan[0][idx][1].format(self.user.username, self.user.username)
-                else:
-                    self.userSpan = self.colorSpan[0][idx][1].format(self.user.username)
             elif self.user.admin_type == AdminType.ADMIN:
-                self.userSpan = self.colorSpan[1][0][1].format(self.user.username)
                 self.RL_score = 15000
             else:
-                self.userSpan = self.colorSpan[2][0][1].format(self.user.username)
                 self.RL_score = 20000
+            
+            self.set_colorSpan()
+
+    def set_colorSpan(self):
+        if self.user:
+            if self.user.admin_type == AdminType.REGULAR_USER:
+                colorid = 0
+                while True:
+                    l, r, span = self.colorSpan[0][colorid]
+                    if l <= self.RL_score <= r:
+                        if self.RL_score != 10000:
+                            self.userSpan = span.format(self.user.username)
+                        else:
+                            if len(self.user.username) > 1:
+                                self.userSpan = span.format(self.user.username[0], self.user.username[1:])
+                            else:
+                                self.userSpan = span.format(self.user.username, self.user.username)
+                        break
+                    colorid += 1
+            elif self.user.admin_type == AdminType.ADMIN:
+                self.userSpan = self.colorSpan[1][0][1].format(self.user.username)
+            else:
+                self.userSpan = self.colorSpan[2][0][1].format(self.user.username)
+        self.save()
 
     def initMeta(self):
         if self.user:
@@ -237,17 +248,7 @@ class UserProfile(models.Model):
         
         self.ls_sc = score
         self.RL_score = score
-        idx = 0
-        while score >= self.colorSpan[0][idx][0]:
-            idx += 1
-        if idx != 0: idx -= 1
-        if idx == 7:
-            if len(self.user.username) > 1:
-                self.userSpan = self.colorSpan[0][idx][1].format(self.user.username[0], self.user.username[1:])
-            else:
-                self.userSpan = self.colorSpan[0][idx][1].format(self.user.username, self.user.username)
-        else:
-            self.userSpan = self.colorSpan[0][idx][1].format(self.user.username)
+        self.set_colorSpan()
         self.save()
 
     def add_accepted_problem_number(self):

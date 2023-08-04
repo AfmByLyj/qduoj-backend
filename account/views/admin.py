@@ -60,7 +60,6 @@ class UserAdminAPI(APIView):
         if User.objects.filter(email=data["email"].lower()).exclude(id=user.id).exists():
             return self.error("Email already exists")
 
-        lastType = user.admin_type
         pre_username = user.username
         user.username = data["username"].lower()
         user.email = data["email"].lower()
@@ -99,6 +98,7 @@ class UserAdminAPI(APIView):
             Submission.objects.filter(username=pre_username).update(username=user.username)
 
         UserProfile.objects.filter(user=user).update(real_name=data["real_name"])
+        UserProfile.objects.get(user=user).initModels()
         return self.success(UserAdminSerializer(user).data)
 
     @super_admin_required
