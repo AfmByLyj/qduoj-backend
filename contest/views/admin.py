@@ -127,9 +127,7 @@ class ContestAPI(APIView):
         if contest_id:
             if request.user.is_admin():
                 Contest.objects.filter(id=contest_id,
-                                                   contest__created_by=request.user).delete()
-            else:
-                Contest.objects.filter(id=contest_id).delete()
+                                                   created_by=request.user).delete()
         return self.success()
 
 class ContestAnnouncementAPI(APIView):

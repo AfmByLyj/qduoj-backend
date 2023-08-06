@@ -115,25 +115,24 @@ class UserProfile(models.Model):
 
     colorSpan = [
         [
-            [-inf, 999, '<span style="color:pink;">{}</span>'],
-            [1000, 1999, '<span style="color:green;">{}</span>'],
-            [2000, 2999, '<span style="color:brown;">{}</span>'],
-            [3000, 3999, '<span style="color:cyan;">{}</span>'],
-            [4000, 4999, '<span style="color:bule;">{}</span>'],
-            [5000, 7999, '<span style="color:purple;">{}</span>'],
-            [8000, 9999, '<span style="color:red;">{}</span>'],
-            [10000, 10000, '<span style="color:black;">{}<span style="color:red;">{}</span></span>'],
-            [10001, inf, '<span style="background-image: -webkit-linear-gradient(45deg, black, red);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">{}</span>'],
+            [-10**18, 999, '<span style="color:pink;">|</span>'],
+            [1000, 1999, '<span style="color:green;">|</span>'],
+            [2000, 2999, '<span style="color:brown;">|</span>'],
+            [3000, 3999, '<span style="color:cyan;">|</span>'],
+            [4000, 4999, '<span style="color:blue;">|</span>'],
+            [5000, 7999, '<span style="color:purple;">|</span>'],
+            [8000, 9999, '<span style="color:red;">|</span>'],
+            [10000, 10**18, '<span style="background-image: -webkit-linear-gradient(45deg, black, red);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">|</span>'],
         ],
         [
-            [15001, '<span style="background-image: -webkit-linear-gradient(45deg, black, #FFDF00);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">{}</span>'],
+            [15001, '<span style="background-image: -webkit-linear-gradient(45deg, black, #FFDF00);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">|</span>'],
         ],
         [
-            [20001, '<span style="background-image: -webkit-linear-gradient(45deg, red, #FFDF00);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">{}</span>']
+            [20001, '<span style="background-image: -webkit-linear-gradient(45deg, red, #FFDF00);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">|</span>']
         ]
     ]
 
-    userSpan = models.TextField(default="")
+    userSpan = models.TextField(default="<span style=\"color:green;\">|</span>")
 
     RL_score = models.IntegerField(default=1000)
     ls_sc = models.IntegerField(default=1000)
@@ -156,25 +155,25 @@ class UserProfile(models.Model):
     RL_get = JSONField(default=dict)
 
     padds = [
-        [35, 60, 100], 
-        [24, 35, 55], 
-        [12, 45, 65],
-        [8, 55, 80],
-        [4, 60, 100],
-        [1, 80, 200],
-        [0, 100, 500],
-        [500, 800, 1000]
+        [35, 60, 100], # -inf~1000
+        [24, 35, 55],  # 1000~2000
+        [12, 45, 65],  # 2000~3000
+        [8, 55, 80],   # 3000~4000
+        [4, 60, 100],  # 4000~5000
+        [1, 80, 200],  # 5000~8000
+        [0, 100, 500], # 8000~10000
+        [0, 0, 0]      # 10000~inf
     ]
 
     radds = [
-        [[500, 0, 0, 1], [250, 0, 0, 1], [100, 0, 0, -1]],
-        [[11, 106, 1, 1], [100, 0, 0, 1], [11, 66, 1, -1]],
-        [[11, 96, 1, 1], [80, 0, 0, 1], [12, 56, 1, -1]],
-        [[11, 76, 1, 1], [60, 0, 0, 1], [13, 61, 1, -1]],
-        [[11, 62, 1, 1], [40, 0, 0, 1], [21, 81, 1, -1]],
-        [[11, 48, 1, 1], [30, 0, 0, 1], [31, 101, 1, -1]],
-        [[11, 156, 1, 1], [80, 0, 0, 1], [51, 201, 1, -1]],
-        [[1000, 0, 0, 1], [500, 0, 0, 1], [1500, 0, 0, -1]],
+        [[500, 0, 0, 1], [250, 0, 0, 1], [100, 0, 0, -1]],  # -inf~1000
+        [[11, 106, 1, 1], [100, 0, 0, 1], [11, 66, 1, -1]], # 1000~2000
+        [[11, 96, 1, 1], [80, 0, 0, 1], [12, 56, 1, -1]],   # 2000~3000
+        [[11, 76, 1, 1], [60, 0, 0, 1], [13, 61, 1, -1]],   # 3000~4000
+        [[11, 62, 1, 1], [40, 0, 0, 1], [21, 81, 1, -1]],   # 4000~5000
+        [[11, 48, 1, 1], [30, 0, 0, 1], [31, 101, 1, -1]],  # 5000~8000
+        [[11, 156, 1, 1], [80, 0, 0, 1], [51, 201, 1, -1]], # 8000~10000
+        [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, -1]],        # 10000~inf
     ]
 
     pdf2id = {
@@ -201,19 +200,13 @@ class UserProfile(models.Model):
                 while True:
                     l, r, span = self.colorSpan[0][colorid]
                     if l <= self.RL_score <= r:
-                        if self.RL_score != 10000:
-                            self.userSpan = span.format(self.user.username)
-                        else:
-                            if len(self.user.username) > 1:
-                                self.userSpan = span.format(self.user.username[0], self.user.username[1:])
-                            else:
-                                self.userSpan = span.format(self.user.username, self.user.username)
+                        self.userSpan = span
                         break
                     colorid += 1
             elif self.user.admin_type == AdminType.ADMIN:
-                self.userSpan = self.colorSpan[1][0][1].format(self.user.username)
+                self.userSpan = self.colorSpan[1][0][1]
             else:
-                self.userSpan = self.colorSpan[2][0][1].format(self.user.username)
+                self.userSpan = self.colorSpan[2][0][1]
         self.save()
 
     def initMeta(self):
@@ -225,8 +218,13 @@ class UserProfile(models.Model):
     def add_RL_score(self, pdiff=None, ranks=None):
         if self.user.admin_type != AdminType.REGULAR_USER: return
         score = self.RL_score
+        score = max(-10000, min(score, 10000))
         tmp_s = score
-        fid = max(min((score + 1000) // 1000, 7), 0)
+        fid = 0
+        while True:
+            if self.colorSpan[0][fid][0] <= score <= self.colorSpan[0][fid][1]:
+                break
+            fid += 1
         if not pdiff is None:
             sid, problem_id = self.pdf2id[pdiff[0]], pdiff[1]
             score += self.padds[fid][sid]
@@ -248,8 +246,8 @@ class UserProfile(models.Model):
         
         self.ls_sc = score
         self.RL_score = score
-        self.set_colorSpan()
         self.save()
+        self.set_colorSpan()
 
     def add_accepted_problem_number(self):
         self.accepted_number = models.F("accepted_number") + 1
