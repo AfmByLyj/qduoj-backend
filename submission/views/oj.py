@@ -1,4 +1,5 @@
 import ipaddress
+import time
 
 from account.decorators import login_required, check_contest_permission
 from contest.models import ContestStatus, ContestRuleType
@@ -50,6 +51,19 @@ class SubmissionAPI(APIView):
     def post(self, request):
         data = request.data
         hide_id = False
+
+        klot = data["klot"]
+        if klot:
+            klotSSA = self.klotTransform(klot)
+            if klotSSA == -1:
+                return self.error("Incorrect klot format")
+            else:
+                backendDate = int(time.time() * 1000)
+                if abs(backendDate - klotSSA) > 10000:
+                    return self.error("Klot has expired!")
+        else:
+            return self.error("Need Klot!")
+
         if data.get("contest_id"):
             error = self.check_contest_permission(request)
             if error:
@@ -69,6 +83,7 @@ class SubmissionAPI(APIView):
             problem = Problem.objects.get(id=data["problem_id"], contest_id=data.get("contest_id"), visible=True)
         except Problem.DoesNotExist:
             return self.error("Problem not exist")
+        
         if data["language"] not in problem.languages:
             return self.error(f"{data['language']} is now allowed in the problem")
         submission = Submission.objects.create(user_id=request.user.id,

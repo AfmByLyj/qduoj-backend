@@ -132,7 +132,7 @@ class UserProfile(models.Model):
         ]
     ]
 
-    userSpan = models.TextField(default="<span style=\"color:green;\">|</span>")
+    userSpan = models.TextField(default="<span style=\"color:green;\">|</span>", null=False)
 
     RL_score = models.IntegerField(default=1000)
     ls_sc = models.IntegerField(default=1000)

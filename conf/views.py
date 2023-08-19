@@ -562,3 +562,23 @@ class DashboardInfoAPI(APIView):
                 "STATIC_CDN_HOST": get_env("STATIC_CDN_HOST", default="")
             }
         })
+
+class IsVaildUrl(APIView):
+    def post(self, request):
+        try:
+            data = request.data
+            url = data['url']
+            if not url:
+                return self.error("Need URL!")
+            
+            if len(url) <= 4:
+                url = 'http://' + url
+            else:
+                if url[:7] != 'http://' and url[:8] != 'https://':
+                    url = 'http://' + url
+
+            response = requests.get(url=url)
+            
+            return self.success(str(response.status_code))
+        except Exception as e:
+            return self.error(str(e))

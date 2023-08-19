@@ -607,7 +607,7 @@ class ImportProblemAPI(CSRFExemptAPIView, TestCaseZipProcessor):
                                                              memory_limit=problem_info["memory_limit"],
                                                              samples=problem_info["samples"],
                                                              template=problem_info["template"],
-                                                             rule_type=problem_info["rule_type"],
+                                                             rule_type=ProblemRuleType.ACM,
                                                              source=problem_info["source"],
                                                              spj=spj,
                                                              spj_code=problem_info["spj"]["code"] if spj else None,

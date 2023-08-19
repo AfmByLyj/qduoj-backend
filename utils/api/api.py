@@ -62,6 +62,34 @@ class APIView(View):
     request_parsers = (JSONParser, URLEncodedParser)
     response_class = JSONResponse
 
+    def klotTransform(self, klot):
+        pwd = str(klot)
+        res = ""
+        offsetDict = {
+            'AF': '2',
+            '2b': '0',
+            'oc': '1',
+            'Xs' : '3',
+            'aT' : '4',
+            'a0' : '5',
+            '1Ar' : '6',
+            'x0t' : '7',
+            'qw!' : '8',
+            '!r' : '9'  
+        }
+        _ = 0
+        while _ < len(pwd):
+            if pwd[_: _+2] in offsetDict:
+                res += offsetDict[pwd[_: _+2]]
+                _ += 2
+            elif pwd[_: _+3] in offsetDict:
+                res += offsetDict[pwd[_: _+3]]
+                _ += 3
+            else:
+                return -1
+        
+        return int(res)
+
     def _get_request_data(self, request):
         if request.method not in ["GET", "DELETE"]:
             body = request.body
@@ -129,12 +157,13 @@ class APIView(View):
             offset = 0
         if offset < 0:
             offset = 0
-        results = query_set[offset:offset + limit]
-        if object_serializer:
-            count = query_set.count()
+        try:
+            results = query_set[offset:offset + limit]
+        except IndexError:
+            results = query_set[offset: -1]
+        if object_serializer is not None:
             results = object_serializer(results, many=True).data
-        else:
-            count = query_set.count()
+        count = query_set.count()
         data = {"results": results,
                 "total": count}
         return data

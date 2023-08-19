@@ -3,10 +3,14 @@
 APP=/app
 DATA=/data
 
-mkdir -p $DATA/log $DATA/config $DATA/ssl $DATA/test_case $DATA/public/upload $DATA/public/avatar $DATA/public/website
+mkdir -p $DATA/log $DATA/config $DATA/ssl $DATA/test_case $DATA/public/upload $DATA/public/avatar $DATA/public/website $DATA/public/anime
 
 if [ ! -f "$DATA/config/secret.key" ]; then
     echo $(cat /dev/urandom | head -1 | md5sum | head -c 32) > "$DATA/config/secret.key"
+fi
+
+if [ ! -f "$DATA/public/anime/default.png" ]; then
+    cp data/public/anime/default.png $DATA/public/anime
 fi
 
 if [ ! -f "$DATA/public/avatar/default.png" ]; then

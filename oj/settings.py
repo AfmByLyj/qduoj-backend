@@ -51,6 +51,7 @@ LOCAL_APPS = [
     'submission',
     'options',
     'judge',
+    'anime'
 ]
 
 INSTALLED_APPS = VENDOR_APPS + LOCAL_APPS
@@ -127,6 +128,9 @@ AUTH_USER_MODEL = 'account.User'
 
 TEST_CASE_DIR = os.path.join(DATA_DIR, "test_case")
 LOG_PATH = os.path.join(DATA_DIR, "log")
+
+ANIME_URI_PREFIX = "/public/anime"
+ANIME_UPLOAD_DIR = f"{DATA_DIR}{ANIME_URI_PREFIX}"
 
 AVATAR_URI_PREFIX = "/public/avatar"
 AVATAR_UPLOAD_DIR = f"{DATA_DIR}{AVATAR_URI_PREFIX}"

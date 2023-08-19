@@ -9,7 +9,7 @@ from contest.models import ContestRuleType
 
 class ProblemTagAPI(APIView):
     def get(self, request):
-        qs = ProblemTag.objects
+        qs = ProblemTag.objects.filter(problem__visible=True, problem__contest=None)
         keyword = request.GET.get("keyword")
         if keyword:
             qs = ProblemTag.objects.filter(name__icontains=keyword)
